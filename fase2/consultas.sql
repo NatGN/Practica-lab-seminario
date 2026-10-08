@@ -59,3 +59,22 @@ WHERE g.total_gastado > (
     FROM gasto_cliente
 )
 ORDER BY g.total_gastado DESC;
+
+
+
+-- Practica 7 - Parte 3.1
+-- Autor: NatGN
+-- Consulta original: pedidos de marzo de 2026
+-- La funcion date_trunc impide aprovechar
+-- directamente el indice sobre fecha_pedido.
+
+-- Version original (solo referencia):
+-- SELECT *
+-- FROM pedido
+-- WHERE date_trunc('month', fecha_pedido) = '2026-03-01';
+
+-- Version reescrita con rango de fechas
+SELECT *
+FROM pedido
+WHERE fecha_pedido >= '2026-03-01'
+  AND fecha_pedido < '2026-04-01';
