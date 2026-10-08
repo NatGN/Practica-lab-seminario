@@ -30,3 +30,36 @@
 - Veredicto: un índice simple sobre pedido.id_cliente probablemente no genere una mejora importante en C6 porque la consulta necesita procesar prácticamente toda la tabla.
 - Columna candidata a comprobar: pedido.id_cliente.
 - Hipótesis del jueves: se corrige parcialmente.
+
+## Resultados 8 oct
+
+### Índice 2 - C6: Clientes con gasto superior al promedio
+
+- **Autor:** jesusdz15
+- **Índice probado:** `pedido_id_cliente_idx`
+- **Consulta:** C6
+- **Código utilizado:** `CREATE INDEX pedido_id_cliente_idx ON pedido (id_cliente);`
+
+**Justificación:**
+
+Se probó un índice sobre `pedido.id_cliente` porque es una llave foránea que no tenía índice. En el diagnóstico anterior se observó que C6 utilizaba un Seq Scan y leía los 20,002 registros de pedido.
+
+**Resultados obtenidos:**
+
+| Medición | Antes (ms) | Después (ms) |
+|---|---:|---:|
+| 1 | 16.934 | 11.937 |
+| 2 | 12.813 | 11.958 |
+| 3 | 11.899 | 12.236 |
+| Tiempo intermedio | 12.813 | 11.958 |
+
+- **Antes:** Seq Scan on pedido, 211 Buffers (shared hit), 12.813 ms.
+- **Después:** Seq Scan on pedido, 211 Buffers (shared hit), 11.958 ms.
+
+**Veredicto:**
+
+Se decidió eliminar el índice porque PostgreSQL continuó utilizando Seq Scan y los Buffers no disminuyeron. Aunque el tiempo intermedio bajó ligeramente, no se pudo demostrar que esa diferencia fuera consecuencia del índice.
+
+Esto ocurre porque C6 necesita leer todos los pedidos para calcular el gasto total de cada cliente, por lo que el índice sobre `id_cliente` no resultó útil para esta consulta.
+
+Se eliminó con `DROP INDEX IF EXISTS public.pedido_id_cliente_idx;`.
