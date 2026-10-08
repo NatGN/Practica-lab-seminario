@@ -16,3 +16,13 @@
 
 CREATE INDEX IF NOT EXISTS pedido_fecha_pedido_idx
 ON public.pedido (fecha_pedido);
+
+
+-- C4 · autor: Pau24711
+-- Índice sobre total para mejorar ORDER BY total DESC LIMIT 20.
+-- Antes: Seq Scan · 422 Buffers · 14.885 ms.
+-- Después: Index Scan Backward · 79 Buffers · 6.285 ms.
+-- El índice se conserva porque redujo Buffers y eliminó el Sort.
+
+CREATE INDEX IF NOT EXISTS pedido_total_idx
+ON public.pedido (total);
