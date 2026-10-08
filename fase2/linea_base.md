@@ -63,3 +63,59 @@ Se decidió eliminar el índice porque PostgreSQL continuó utilizando Seq Scan 
 Esto ocurre porque C6 necesita leer todos los pedidos para calcular el gasto total de cada cliente, por lo que el índice sobre `id_cliente` no resultó útil para esta consulta.
 
 Se eliminó con `DROP INDEX IF EXISTS public.pedido_id_cliente_idx;`.
+
+
+
+
+
+
+### Índice sobre fecha_pedido - NatGN
+
+**Autor:** NatGN
+
+**Índice creado:**
+`CREATE INDEX pedido_fecha_pedido_idx ON pedido (fecha_pedido);`
+
+**Consulta evaluada:** Pedidos de marzo de 2026 (Parte 3.1).
+
+**Justificación:**
+
+Se probó el índice sobre fecha_pedido para comparar una consulta con date_trunc y otra reescrita como rango de fechas. La consulta devuelve 1,615 de los 20,002 pedidos (8.07 %) y descarta 18,387 registros.
+
+**Resultados obtenidos:**
+
+| Medición | Antes del índice (ms) | Original con índice (ms) | Reescrita con índice (ms) |
+|----------|-----------------------|-------------------------|--------------------------|
+| 1 | 10.001 | 4.851 | 5.201 |
+| 2 | 21.132 | 6.400 | 1.429 |
+| 3 | 13.327 | 5.694 | 1.359 |
+| Mediana | 13.327 | 5.694 | 1.429 |
+
+**Planes de ejecución:**
+
+- Antes del índice: Seq Scan, 211 Buffers.
+- Original con índice: Seq Scan, 211 Buffers.
+- Reescrita con índice: Bitmap Heap Scan + Bitmap Index Scan, 217 Buffers.
+
+**Comprobación de resultados:**
+
+Ambas consultas devolvieron 1,615 registros.
+Se utilizó EXCEPT ALL en ambos sentidos y se obtuvieron 0 diferencias.
+
+**Revisión de C7:**
+
+El diagnóstico anterior registró GroupAggregate y Seq Scan para procesar los 20,002 pedidos, con un tiempo de 18.230 ms.
+
+En una consulta de referencia que agrupa por mes, después de crear el índice se obtuvo GroupAggregate con Index Only Scan y un tiempo de 17.435 ms.
+
+Aunque cambió el acceso a los datos, no se demostró una mejora concluyente para la C7 original, ya que no se confirmó que ambas consultas fueran idénticas.
+
+**Costo del índice:**
+
+- Tamaño: 456 kB.
+- Tamaño de la tabla pedido: 1,688 kB.
+- Uso registrado: 5 ejecuciones.
+
+**Veredicto:**
+
+Se propone conservar el índice para búsquedas por rango de fechas porque PostgreSQL lo utilizó en la consulta reescrita y el tiempo mediano fue menor. Sin embargo, los Buffers aumentaron de 211 a 217 y no se demostró una mejora concluyente para C7.
