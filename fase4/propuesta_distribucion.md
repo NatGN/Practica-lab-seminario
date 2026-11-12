@@ -131,6 +131,8 @@ Todos los pedidos tienen una fecha y cumplen alguna de las dos condiciones que u
 
 Por esta razón no fue necesario corregir registros.
 
+Revisión de los predicados: Los pedidos se dividieron según su fecha. En el nodo histórico quedaron 5,029 y en el actual 14,973. La suma corresponde a los 20,002 pedidos originales, sin filas huérfanas.
+
 ## Parte 3. Creación de nodos en Supabase
 
 Creamos dos esquemas nuevos llamados `nodo_historico` y `nodo_actual`.
