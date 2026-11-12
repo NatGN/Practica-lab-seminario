@@ -207,6 +207,9 @@ La tabla original conservó sus 20,002 registros.
 
 Después de crear los nodos realizamos las comprobaciones para verificar que la distribución fuera correcta.
 
+Revisión de resultados: La reconstrucción devolvió los 20,002 pedidos originales, no encontramos registros repetidos y la prueba del CHECK rechazó correctamente un pedido que no correspondía al nodo.
+
+
 ### 1. Completitud
 
 Esta regla significa que ningún registro debe perderse al distribuir los datos.
